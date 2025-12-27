@@ -1,0 +1,2734 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>המאסטר האחרון</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, rgba(76,175,80,0.95) 0%, rgba(255,152,0,0.95) 100%), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200"><defs><pattern id="wave" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse"><path d="M0 50 Q 50 25, 100 50 T 200 50" stroke="%234caf50" stroke-width="2" fill="none" opacity="0.3"/><path d="M0 100 Q 50 75, 100 100 T 200 100" stroke="%23ff9800" stroke-width="2" fill="none" opacity="0.3"/><path d="M0 150 Q 50 125, 100 150 T 200 150" stroke="%234caf50" stroke-width="2" fill="none" opacity="0.2"/></pattern></defs><rect width="1200" height="200" fill="url(%23wave)"/></svg>');
+            background-size: cover, 200px 200px;
+            background-position: center, center;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .upload-btn-container {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+        }
+        .upload-label {
+            background: rgba(255,255,255,0.25);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .upload-label:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+        #fileInput, #mapFileInput {
+            display: none;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #4caf50 0%, #ff9800 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-value { font-size: 3em; font-weight: bold; }
+        .stat-label { font-size: 1.1em; opacity: 0.9; margin-top: 10px; }
+        .filters {
+            padding: 30px;
+            background: white;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .filters h3 { color: #4caf50; margin-bottom: 20px; font-size: 1.5em; }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            position: relative;
+        }
+        .filter-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .filter-group select[multiple] {
+            min-height: 250px;
+            max-height: 400px;
+            font-size: 0.95em;
+        }
+        
+        /* Better display for signature select */
+        #filterSig {
+            font-size: 0.95em;
+            max-width: 100%;
+            width: 100%;
+            overflow: visible;
+        }
+        #filterSig option {
+            padding: 12px 10px;
+            line-height: 1.8;
+            min-height: 60px;
+            direction: rtl;
+            text-align: right;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        #filterSig option:checked {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        /* Autocomplete dropdown */
+        .autocomplete-container {
+            position: relative;
+        }
+        .autocomplete-input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .autocomplete-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .copy-btn {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+        .autocomplete-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.2s;
+        }
+        .autocomplete-item:hover {
+            background: #f8f9fa;
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-item strong {
+            color: #4caf50;
+            font-size: 1.1em;
+        }
+        .autocomplete-item small {
+            color: #666;
+            display: block;
+            margin-top: 3px;
+        }
+        .no-results {
+            padding: 12px;
+            color: #999;
+            text-align: center;
+        }
+        
+        .multi-select-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        .selected-items {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .selected-tag {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selected-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .selected-tag .remove:hover {
+            color: #ffdddd;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff9800 0%, #fb8c00 100%);
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+        }
+        .latest-info {
+            margin: 0 30px 30px 30px;
+            padding: 0;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .latest-info.show { display: block; }
+        .latest-header {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .latest-header:hover {
+            background: linear-gradient(135deg, #fb8c00 0%, #ef6c00 100%);
+        }
+        .latest-header strong { 
+            font-size: 1.4em;
+        }
+        .expand-icon {
+            font-size: 1.5em;
+            transition: transform 0.3s;
+        }
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+        .latest-summary {
+            padding: 25px;
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border-bottom: 2px solid #17a2b8;
+        }
+        .latest-detail {
+            font-size: 1.1em;
+            color: #0c5460;
+            margin-bottom: 10px;
+        }
+        .latest-detail span {
+            color: #004085;
+            font-weight: bold;
+        }
+        .latest-body {
+            padding: 30px;
+            background: #f8f9fa;
+            display: none;
+        }
+        .latest-body.show {
+            display: block;
+        }
+        .latest-operations {
+            margin-top: 20px;
+        }
+        .latest-op-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-right: 5px solid #17a2b8;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .latest-op-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .latest-op-num {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-left: 15px;
+        }
+        .latest-op-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+        .latest-detail-box {
+            background: #e7f3ff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-right: 3px solid #17a2b8;
+        }
+        .detail-label {
+            color: #0c5460;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .detail-value {
+            color: #004085;
+            font-weight: bold;
+        }
+        .info-text {
+            color: #666;
+            font-size: 0.95em;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        .results {
+            padding: 30px;
+        }
+        .sig-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .sig-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        .sig-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .sig-header:hover { background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%); }
+        .sig-title { 
+            font-size: 1.5em; 
+            font-weight: bold;
+            flex: 1;
+        }
+        .sig-short-name {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+        .sig-badges {
+            display: flex;
+            gap: 15px;
+        }
+        .badge {
+            background: rgba(255,255,255,0.25);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .sig-body {
+            padding: 30px;
+            display: none;
+            background: #f8f9fa;
+        }
+        .sig-body.show { display: block; }
+        .ops-title {
+            color: #667eea;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .op-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-right: 5px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .op-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .op-num {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-left: 15px;
+        }
+        .op-name-section {
+            flex: 1;
+        }
+        .op-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+        .op-type-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-top: 5px;
+        }
+        .variations-section {
+            margin-top: 15px;
+        }
+        .variation-title {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.05em;
+        }
+        .variation-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-right: 3px solid #667eea;
+        }
+        .variation-code {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        .variation-desc {
+            color: #555;
+            margin-top: 3px;
+            font-size: 0.9em;
+        }
+        .routings-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #dee2e6;
+        }
+        .routings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .routing-card {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.2s;
+        }
+        .routing-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .routing-id {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+            font-size: 1.3em;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .loading.show {
+            display: flex;
+        }
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2>טוען נתונים...</h2>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="upload-btn-container">
+                <label for="fileInput" class="upload-label">
+                    📁 טען קובץ Excel חדש
+                </label>
+                <input type="file" id="fileInput" accept=".xlsx,.xls">
+                
+                <label for="mapFileInput" class="upload-label" style="background: rgba(33,150,243,0.25); margin-top: 10px; display: block;">
+                    🔑 טען MAP חדש (מילות מפתח)
+                </label>
+                <input type="file" id="mapFileInput" accept=".xlsx,.xls">
+            </div>
+            
+            <!-- Logo -->
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 15px;">
+                <img src="data:image/webp;base64,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" alt="Green Coat & Algat Logo" style="height: 70px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+            </div>
+            
+            <h1>🎖️ המאסטר האחרון</h1>
+            <p style="font-size: 1.2em; opacity: 0.95;">ניתוח ניתובים ופעולות מתקדם</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalSigs">0</div>
+                <div class="stat-label">צירופים מוצגים</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalRoutings">0</div>
+                <div class="stat-label">ניתובים מוצגים</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-right: 4px solid #2196f3;">
+                <div class="stat-value" id="mapOperations" style="color: #1565c0;">45</div>
+                <div class="stat-label">🔑 פעולות במילון</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <h3>🔧 סינונים דינמיים</h3>
+            
+            <!-- Row 1: Signature + Action Buttons -->
+            <div style="margin-bottom: 15px;">
+                <div class="filter-group">
+                    <label>1️⃣ צירוף</label>
+                    <select id="filterSig" onchange="updateDynamicFilters(); updateSelectedSigDisplay()" style="font-size: 0.9em;"></select>
+                    <div id="selectedSigDisplay" style="margin-top: 10px; padding: 20px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 8px; font-size: 1.3em; color: #1b5e20; font-weight: 600; line-height: 1.8; word-wrap: break-word; white-space: normal; overflow-wrap: break-word; min-height: 70px; display: flex; align-items: center;"></div>
+                    
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center;">
+                        <button class="btn" id="toggleSingleBtn" onclick="toggleSingleRoutings()" style="background: linear-gradient(135deg, #4caf50 0%, #ff9800 100%); color: white; border: none; padding: 12px 25px; font-size: 1em; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                            👁️ הצג צירופים עם 1-2 ניתובים
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearFilters()" style="padding: 12px 25px; font-size: 1em; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                            🔄 נקה סינונים
+                        </button>
+                        <button class="btn btn-primary" onclick="applyFilters()" style="padding: 12px 25px; font-size: 1em; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                            🔍 החל סינון
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 2: Routing + Op Type + Operation -->
+            <div style="display: grid; grid-template-columns: 1.5fr 0.8fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="filter-group">
+                    <label>2️⃣ ניתוב (הקלדה + השלמה אוטומטית)</label>
+                    <div class="autocomplete-container">
+                        <input type="text" id="filterRouting" class="autocomplete-input" 
+                               placeholder="הקלד חלק ממספר הניתוב..." 
+                               oninput="showAutocomplete()"
+                               onfocus="showAutocomplete()">
+                        <button class="copy-btn" onclick="copyRoutingNumber()" title="העתק">📋</button>
+                        <div class="autocomplete-dropdown" id="routingDropdown"></div>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>3️⃣ סוג פעולה</label>
+                    <select id="filterOpType" onchange="updateDynamicFilters()"></select>
+                </div>
+                <div class="filter-group">
+                    <label>4️⃣ פעולה</label>
+                    <select id="filterOp" onchange="updateDynamicFilters()"></select>
+                </div>
+            </div>
+            
+            <!-- Row 3: Process + Spec (collapsible) -->
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-top: 15px;">
+                <!-- Processes - Collapsible -->
+                <div class="filter-group" style="border: 2px solid #4caf50; border-radius: 8px; padding: 10px; background: #f1f8f4;">
+                    <div onclick="toggleProcessFilter()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 8px; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: white; border-radius: 5px; margin-bottom: 10px;">
+                        <label style="margin: 0; font-weight: bold; cursor: pointer;">5️⃣ תהליכים (בחירה מרובה)</label>
+                        <span id="processToggleIcon" style="font-size: 1.2em; transition: transform 0.3s;">▼</span>
+                    </div>
+                    <div id="processFilterContent" style="display: none;">
+                        <select id="filterProc" multiple onchange="updateSelectedProcs()"></select>
+                        <div class="multi-select-info">החזק Ctrl/Cmd לבחירה מרובה</div>
+                        <div class="selected-items" id="selectedProcs"></div>
+                    </div>
+                </div>
+                
+                <!-- Specs - Collapsible -->
+                <div class="filter-group" style="border: 2px solid #ff9800; border-radius: 8px; padding: 10px; background: #fff8f1;">
+                    <div onclick="toggleSpecFilter()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 8px; background: linear-gradient(135deg, #ff9800 0%, #fb8c00 100%); color: white; border-radius: 5px; margin-bottom: 10px;">
+                        <label style="margin: 0; font-weight: bold; cursor: pointer;">6️⃣ מפרטים (בחירה מרובה)</label>
+                        <span id="specToggleIcon" style="font-size: 1.2em; transition: transform 0.3s;">▼</span>
+                    </div>
+                    <div id="specFilterContent" style="display: none;">
+                        <select id="filterSpec" multiple onchange="updateSelectedSpecs()"></select>
+                        <div class="multi-select-info">החזק Ctrl/Cmd לבחירה מרובה</div>
+                        <div class="selected-items" id="selectedSpecs"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 4: Single Spec Search with Autocomplete -->
+            <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 8px;">
+                <div class="filter-group">
+                    <label style="font-weight: bold; color: #2e7d32; font-size: 1.05em;">7️⃣ חיפוש לפי מפרט בודד</label>
+                    
+                    <!-- Dropdown + Autocomplete side by side -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                        <!-- Dropdown -->
+                        <div>
+                            <label style="font-size: 0.9em; color: #2e7d32; margin-bottom: 5px; display: block;">בחירה מרשימה:</label>
+                            <select id="singleSpecDropdownSelect" onchange="selectSpecFromDropdown()" style="width: 100%; padding: 10px; font-size: 0.95em;">
+                                <option value="">-- בחר מפרט --</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Autocomplete -->
+                        <div>
+                            <label style="font-size: 0.9em; color: #2e7d32; margin-bottom: 5px; display: block;">הקלדה + השלמה:</label>
+                            <div class="autocomplete-container">
+                                <input type="text" id="singleSpecSearch" class="autocomplete-input" 
+                                       placeholder="הקלד שם מפרט או קוד..." 
+                                       oninput="showSingleSpecAutocomplete()"
+                                       onfocus="showSingleSpecAutocomplete()">
+                                <button class="copy-btn" onclick="copySingleSpec()" title="העתק">📋</button>
+                                <div class="autocomplete-dropdown" id="singleSpecDropdown"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 8px; font-size: 0.9em; color: #2e7d32;">
+                        💡 מציג את כל הניתובים בהם מופיע המפרט הנבחר
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 5: Advanced Sequence Search -->
+            <div style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #fff3cd 0%, #ffe8a1 100%); border: 2px solid #ffc107; border-radius: 8px;">
+                <label style="font-weight: bold; color: #856404; font-size: 1.05em; display: block; margin-bottom: 10px;">
+                    🔎 חיפוש רצף פעולות מתקדם
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="sequenceSearch" class="autocomplete-input" 
+                           placeholder='לדוגמה: אבץ+מיסוך+צביעה+הסרת מיסוך (הפרד עם +)'
+                           oninput="validateKeywords()"
+                           style="flex: 1; font-size: 1em; padding: 12px;">
+                    <button class="btn" onclick="searchSequence()" 
+                            style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #000; font-weight: bold; border: none; padding: 12px 30px;">
+                        🔍 חפש רצף
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearSequenceSearch()">
+                        ✖ נקה
+                    </button>
+                    <label for="textFileInput" class="btn" 
+                           style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white; border: none; padding: 12px 20px; cursor: pointer; font-weight: bold; margin: 0;">
+                        📄 טען קובץ
+                    </label>
+                    <input type="file" id="textFileInput" accept=".txt" style="display: none;" onchange="handleTextFileUpload(event)">
+                </div>
+                <div id="keywordValidationMessage" style="margin-top: 8px; font-size: 0.9em; color: #856404; display: none;">
+                </div>
+                <div style="margin-top: 8px; font-size: 0.9em; color: #856404;">
+                    💡 הזן מילות מפתח מופרדות ב-+ (כל מילה חייבת להופיע בפעולה נפרדת ברצף)
+                </div>
+                <div style="margin-top: 8px; padding: 10px; background: rgba(156,39,176,0.1); border-right: 3px solid #9c27b0; border-radius: 5px; font-size: 0.85em; color: #6a1b9a;">
+                    <strong>📄 פורמט קובץ טקסט:</strong><br>
+                    שורה 1: מילות מפתח לחיפוש רצף (לדוגמה: אבץ+מיסוך+צביעה)<br>
+                    שורה 2 (אופציונלי): מילות מפתח לחיפוש מפרטים (לדוגמה: MIL+PS)
+                </div>
+                <div id="sequenceResults" style="margin-top: 15px; display: none;">
+                    <div style="font-weight: bold; color: #856404; margin-bottom: 10px;">
+                        📊 תוצאות חיפוש: <span id="sequenceCount">0</span>
+                    </div>
+                    <div id="sequenceList" style="max-height: 300px; overflow-y: auto; background: white; padding: 10px; border-radius: 5px;"></div>
+                </div>
+            </div>
+            
+            <!-- Row 6: Spec Search on Results -->
+            <div id="specSearchSection" style="margin-top: 15px; padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; display: none;">
+                <label style="font-weight: bold; color: #0d47a1; font-size: 1.05em; display: block; margin-bottom: 10px;">
+                    🎯 חיפוש מפרטים בתוצאות
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="specSearchInput" class="autocomplete-input" 
+                           placeholder='לדוגמה: PS3-5-1+PS4-01 (הפרד עם +)'
+                           style="flex: 1; font-size: 1em; padding: 12px;">
+                    <button class="btn" onclick="searchSpecsInResults()" 
+                            style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); color: white; font-weight: bold; border: none; padding: 12px 30px;">
+                        🔍 חפש מפרטים
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearSpecSearch()">
+                        ✖ נקה
+                    </button>
+                </div>
+                <div style="margin-top: 8px; font-size: 0.9em; color: #0d47a1;">
+                    💡 חיפוש זה פועל על תוצאות חיפוש הרצף למעלה. הזן שמות מפרטים מופרדים ב-+
+                </div>
+                <div style="margin-top: 8px; font-size: 0.85em; color: #1565c0; font-style: italic;">
+                    🔍 מחפש ב-<span id="currentSearchCount" style="font-weight: bold;">0</span> ניתובים מחיפוש הרצף
+                </div>
+                <div id="specResults" style="margin-top: 15px; display: none;">
+                    <div style="font-weight: bold; color: #0d47a1; margin-bottom: 10px;">
+                        📊 תוצאות סופיות: <span id="specCount">0</span>
+                    </div>
+                    <div id="specList" style="max-height: 300px; overflow-y: auto; background: white; padding: 10px; border-radius: 5px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="latest-info" id="latestInfo">
+            <div class="latest-header" onclick="toggleLatest()">
+                <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                    <strong>📅 ניתוב אחרון בבחירה הנוכחית</strong>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button onclick="event.stopPropagation(); navigateRouting(-1)" id="prevRoutingBtn" 
+                                style="background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            ◀ קודם
+                        </button>
+                        <span id="routingPosition" style="background: #667eea; color: white; padding: 6px 12px; border-radius: 5px; font-weight: bold; min-width: 80px; text-align: center;">
+                            1 / 1
+                        </span>
+                        <button onclick="event.stopPropagation(); navigateRouting(1)" id="nextRoutingBtn" 
+                                style="background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            הבא ▶
+                        </button>
+                    </div>
+                </div>
+                <span class="expand-icon" id="expandIcon">▼</span>
+            </div>
+            <div class="latest-summary" id="latestSummary"></div>
+            <div class="latest-body" id="latestBody"></div>
+        </div>
+        
+        <div class="results" id="results"></div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // 🧹 Routing Analyzer v7.1 - CLEAN VERSION
+        // ═══════════════════════════════════════════════════════════════
+        // No embedded data - loads from Excel files
+        
+        let COMPLETE_ROUTINGS = {};
+        let SIGNATURES = [];
+        let OPERATION_KEYWORDS = {};
+        let allRoutingIds = [];
+        let allSpecsMap = new Map();
+        let allProcsMap = new Map();
+        
+        let currentFiltered = [];
+        let allSortedRoutings = [];
+        let currentRoutingIndex = 0;
+        let latestRouting = null;
+        let showSingleRoutings = true;
+        
+        let filters = {
+            sig: null,
+            routing: '',
+            opType: '',
+            op: '',
+            procs: [],
+            specs: []
+        };
+        
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        document.getElementById('mapFileInput').addEventListener('change', handleMapFileUpload);
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.autocomplete-container')) {
+                document.getElementById('routingDropdown').classList.remove('show');
+                document.getElementById('singleSpecDropdown').classList.remove('show');
+            }
+        });
+        
+        async function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('loading').classList.add('show');
+            
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                await processExcelData(jsonData);
+                
+                alert('הקובץ נטען בהצלחה! ✓');
+                document.getElementById('fileInput').value = '';
+            } catch (error) {
+                alert('שגיאה בטעינת הקובץ: ' + error.message);
+                console.error(error);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+        
+        async function handleMapFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('loading').classList.add('show');
+            
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data);
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                // Process MAP file and update OPERATION_KEYWORDS
+                const newKeywords = processMapData(jsonData);
+                
+                // Update global OPERATION_KEYWORDS
+                Object.assign(OPERATION_KEYWORDS, newKeywords);
+                
+                // Update UI
+                document.getElementById('mapOperations').textContent = Object.keys(OPERATION_KEYWORDS).length;
+                
+                alert(`✓ MAP נטען בהצלחה!\n📊 ${Object.keys(newKeywords).length} פעולות חדשות\n🔑 סה"כ ${Object.keys(OPERATION_KEYWORDS).length} פעולות במילון`);
+                document.getElementById('mapFileInput').value = '';
+            } catch (error) {
+                alert('שגיאה בטעינת MAP: ' + error.message);
+                console.error(error);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+        
+        function processMapData(rows) {
+            const operationKeywords = {};
+            
+            rows.forEach(row => {
+                // Get operation name from first column
+                const opName = row['פעולה'] || row['Operation'] || '';
+                if (!opName) return;
+                
+                const keywords = [];
+                
+                // Get keywords from columns 2, 3, 4
+                const kw1 = row['מילת מפתח'] || row['Keyword1'] || '';
+                const kw2 = row['מילת מפתח2'] || row['Keyword2'] || '';
+                const kw3 = row['מילת מפתח3'] || row['Keyword3'] || '';
+                
+                if (kw1 && kw1 !== 'N/A') keywords.push(String(kw1).trim().toLowerCase());
+                if (kw2 && kw2 !== 'N/A') keywords.push(String(kw2).trim().toLowerCase());
+                if (kw3 && kw3 !== 'N/A') keywords.push(String(kw3).trim().toLowerCase());
+                
+                if (keywords.length > 0) {
+                    operationKeywords[opName] = keywords;
+                }
+            });
+            
+            console.log(`📋 MAP loaded: ${Object.keys(operationKeywords).length} operations with keywords`);
+            
+            return operationKeywords;
+        }
+        
+        async function processExcelData(rows) {
+            console.log('Processing Excel data, rows:', rows.length);
+            const completeRoutings = {};
+            const routingGroups = {};
+            
+            try {
+                rows.forEach((row, index) => {
+                    try {
+                        // Support both English and Hebrew column names
+                        const routingId = String(row['DirectionHeaderName'] || row['מספר ניתוב'] || row['שם ניתוב'] || '');
+                        if (!routingId) return;
+                        
+                        if (!routingGroups[routingId]) {
+                            routingGroups[routingId] = [];
+                        }
+                        routingGroups[routingId].push(row);
+                    } catch (err) {
+                        console.error('Error processing row', index, err);
+                        throw new Error('שגיאה בעיבוד שורה ' + index + ': ' + err.message);
+                    }
+                });
+            
+            for (const [routingId, group] of Object.entries(routingGroups)) {
+                group.sort((a, b) => (a['ActionNumber'] || a['מספר פעולה'] || 0) - (b['ActionNumber'] || b['מספר פעולה'] || 0));
+                
+                const operations = [];
+                const opTypes = [];
+                const seenOpNumbers = new Set(); // Track unique operation numbers
+                
+                group.forEach(row => {
+                    const opNum = row['ActionNumber'] || row['מספר פעולה'] || 0;
+                    
+                    // Skip if we've already added this operation number
+                    if (seenOpNumbers.has(opNum)) {
+                        return;
+                    }
+                    seenOpNumbers.add(opNum);
+                    
+                    const opType = row['OperatonType'] || row['סוג פעולה'];
+                    const opTypeStr = opType ? String(opType) : 'N/A';
+                    
+                    if (opTypeStr !== 'N/A') {
+                        opTypes.push(opTypeStr);
+                    }
+                    
+                    operations.push({
+                        num: opNum,
+                        name: String(row['Operation'] || row['פעולה'] || row['שם פעולה'] || 'N/A'),
+                        detailed_desc: String(row['OperationDesc'] || row['תיאור פעולה מפורט'] || row['תיאור פעולה מפורט '] || row['תיאור פעולה'] || 'N/A'),
+                        op_type: opTypeStr,
+                        proc_code: String(row['Technology'] || row['מספר תהליך'] || 'N/A'),
+                        proc_desc: String(row['TechnologyDesc'] || row['תיאור תהליך'] || 'N/A'),
+                        spec_code: String(row['SpecNumber'] || row['מספר מפרט'] || 'N/A'),
+                        spec_desc: String(row['SpecDescription'] || row['תיאור מפרט'] || 'N/A')
+                    });
+                });
+                
+                const sigKey = operations.map(op => op.name).join('|||');
+                
+                // Build short name with operation names for ציפוי
+                let shortNameParts = [];
+                operations.forEach((op, idx) => {
+                    if (op.op_type !== 'N/A') {
+                        if (op.op_type === 'ציפוי') {
+                            shortNameParts.push(`ציפוי (${op.name})`);
+                        } else {
+                            shortNameParts.push(op.op_type);
+                        }
+                    }
+                });
+                const shortName = shortNameParts.length > 0 ? shortNameParts.join(' → ') : 'ללא סוג';
+                
+                // Get date from first row in group
+                const dateField = group[0]['DATESIGN3'] || group[0]['תאריך אישור'];
+                
+                // Handle Excel dates properly
+                let dateStr = null;
+                if (dateField) {
+                    let dateObj;
+                    if (typeof dateField === 'number') {
+                        // Excel serial date (days since 1900-01-01)
+                        dateObj = new Date((dateField - 25569) * 86400 * 1000);
+                    } else if (typeof dateField === 'string') {
+                        dateObj = new Date(dateField);
+                    } else {
+                        dateObj = dateField;
+                    }
+                    
+                    // Format as YYYY-MM-DD
+                    if (dateObj && !isNaN(dateObj.getTime())) {
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        dateStr = `${year}-${month}-${day}`;
+                    }
+                }
+                
+                completeRoutings[routingId] = {
+                    id: routingId,
+                    part: String(group[0]['DetailNumber'] || group[0]['מספר פריט'] || group[0]['DetailID'] || group[0]['קוד פריט'] || ''),
+                    part_name: String(group[0]['DetailName'] || group[0]['שם פריט'] || group[0]['PartName'] || group[0]['ItemName'] || ''),
+                    date: dateStr,
+                    sig_key: sigKey,
+                    short_name: shortName,
+                    operations: operations
+                };
+            }
+            
+            const signatures = {};
+            for (const [routingId, routing] of Object.entries(completeRoutings)) {
+                const sigKey = routing.sig_key;
+                
+                if (!signatures[sigKey]) {
+                    signatures[sigKey] = {
+                        operations: routing.operations.map(op => ({
+                            num: op.num,
+                            name: op.name,
+                            op_types: new Set(),
+                            processes: [],
+                            specs: []
+                        })),
+                        short_names: new Set(),
+                        op_types: new Set(),
+                        routings: []
+                    };
+                }
+                
+                routing.operations.forEach((op, i) => {
+                    const sigOp = signatures[sigKey].operations[i];
+                    
+                    if (op.op_type !== 'N/A') {
+                        sigOp.op_types.add(op.op_type);
+                        signatures[sigKey].op_types.add(op.op_type);
+                    }
+                    
+                    const procKey = `${op.proc_code}|||${op.proc_desc}`;
+                    if (!sigOp.processes.some(p => `${p.code}|||${p.desc}` === procKey)) {
+                        if (op.proc_code !== 'N/A' || op.proc_desc !== 'N/A') {
+                            sigOp.processes.push({code: op.proc_code, desc: op.proc_desc});
+                        }
+                    }
+                    
+                    const specKey = `${op.spec_code}|||${op.spec_desc}`;
+                    if (!sigOp.specs.some(s => `${s.code}|||${s.desc}` === specKey)) {
+                        if (op.spec_code !== 'N/A' || op.spec_desc !== 'N/A') {
+                            sigOp.specs.push({code: op.spec_code, desc: op.spec_desc});
+                        }
+                    }
+                });
+                
+                signatures[sigKey].short_names.add(routing.short_name);
+                signatures[sigKey].routings.push({
+                    id: routing.id,
+                    part: routing.part,
+                    date: routing.date
+                });
+            }
+            
+            const sigList = Object.entries(signatures)
+                .map(([key, data], idx) => {
+                data.operations.forEach(op => {
+                    op.op_types = Array.from(op.op_types);
+                });
+                
+                // Build short_name from the signature's operations with op_types
+                let shortNameParts = [];
+                data.operations.forEach(op => {
+                    if (op.op_types && op.op_types.length > 0) {
+                        op.op_types.forEach(opType => {
+                            if (opType === 'ציפוי') {
+                                shortNameParts.push(`ציפוי (${op.name})`);
+                            } else {
+                                shortNameParts.push(opType);
+                            }
+                        });
+                    }
+                });
+                const shortName = shortNameParts.length > 0 ? shortNameParts.join(' → ') : 'ללא סוג';
+                
+                return {
+                    id: idx,
+                    sig_key: key,
+                    short_name: shortName,
+                    all_short_names: Array.from(data.short_names),
+                    op_types: Array.from(data.op_types),
+                    operations: data.operations,
+                    routings: data.routings,
+                    num_ops: data.operations.length,
+                    num_routings: data.routings.length
+                };
+            });
+            
+            sigList.sort((a, b) => b.num_routings - a.num_routings);
+            sigList.forEach((sig, idx) => sig.id = idx);
+            
+            // Now add signature_id and signature text to each routing
+            sigList.forEach(sig => {
+                sig.routings.forEach(routing => {
+                    const routingId = routing.id;
+                    if (completeRoutings[routingId]) {
+                        completeRoutings[routingId].signature_id = sig.id;
+                        completeRoutings[routingId].signature = sig.short_name;
+                        completeRoutings[routingId].approval_date = routing.date;
+                    }
+                });
+            });
+            
+            SIGNATURES = sigList;
+            COMPLETE_ROUTINGS = completeRoutings;
+            allRoutingIds = Object.keys(COMPLETE_ROUTINGS);
+            
+            updateDynamicFilters();
+            applyFilters();
+            
+            } catch (err) {
+                console.error('Error in processExcelData:', err);
+                throw err;
+            }
+        }
+        
+        function showAutocomplete() {
+            const input = document.getElementById('filterRouting');
+            const dropdown = document.getElementById('routingDropdown');
+            const searchTerm = input.value.toLowerCase();
+            
+            if (!searchTerm) {
+                dropdown.classList.remove('show');
+                return;
+            }
+            
+            const matches = allRoutingIds.filter(id => 
+                id.toLowerCase().includes(searchTerm)
+            ).slice(0, 20);
+            
+            if (matches.length === 0) {
+                dropdown.innerHTML = '<div class="no-results">אין תוצאות</div>';
+                dropdown.classList.add('show');
+                return;
+            }
+            
+            dropdown.innerHTML = matches.map(id => {
+                const routing = COMPLETE_ROUTINGS[id];
+                return `
+                    <div class="autocomplete-item" onclick="selectRouting('${id}')">
+                        <strong>${id}</strong>
+                        <small>פריט: ${routing.part} | ${routing.short_name}</small>
+                    </div>
+                `;
+            }).join('');
+            
+            dropdown.classList.add('show');
+        }
+        
+        function selectRouting(routingId) {
+            document.getElementById('filterRouting').value = routingId;
+            document.getElementById('routingDropdown').classList.remove('show');
+            updateDynamicFilters();
+        }
+        
+        function copyRoutingNumber() {
+            const input = document.getElementById('filterRouting');
+            const value = input.value;
+            
+            if (!value) {
+                alert('אין מספר ניתוב להעתיק');
+                return;
+            }
+            
+            navigator.clipboard.writeText(value).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1000);
+            }).catch(err => {
+                console.error('Error copying:', err);
+            });
+        }
+        
+        // Single spec autocomplete functions
+        function showSingleSpecAutocomplete() {
+            const input = document.getElementById('singleSpecSearch');
+            const dropdown = document.getElementById('singleSpecDropdown');
+            const searchTerm = input.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                dropdown.classList.remove('show');
+                return;
+            }
+            
+            // Search in both code and description
+            const matches = Array.from(allSpecsMap.entries())
+                .filter(([code, label]) => 
+                    code.toLowerCase().includes(searchTerm) || 
+                    label.toLowerCase().includes(searchTerm)
+                )
+                .slice(0, 30);
+            
+            if (matches.length === 0) {
+                dropdown.innerHTML = '<div class="no-results">אין תוצאות</div>';
+                dropdown.classList.add('show');
+                return;
+            }
+            
+            dropdown.innerHTML = matches.map(([code, label]) => `
+                <div class="autocomplete-item" onclick="selectSingleSpec('${code.replace(/'/g, "\\'")}')">
+                    <strong>${code}</strong>
+                    <small>${label}</small>
+                </div>
+            `).join('');
+            
+            dropdown.classList.add('show');
+        }
+        
+        function selectSingleSpec(specCode) {
+            document.getElementById('singleSpecSearch').value = specCode;
+            document.getElementById('singleSpecDropdownSelect').value = specCode;
+            document.getElementById('singleSpecDropdown').classList.remove('show');
+            applySingleSpecFilter(specCode);
+        }
+        
+        function selectSpecFromDropdown() {
+            const select = document.getElementById('singleSpecDropdownSelect');
+            const specCode = select.value;
+            
+            if (specCode) {
+                document.getElementById('singleSpecSearch').value = specCode;
+                applySingleSpecFilter(specCode);
+            } else {
+                // Clear filter if "-- בחר מפרט --" is selected
+                document.getElementById('singleSpecSearch').value = '';
+                filters.singleSpec = null;
+                applyFilters();
+            }
+        }
+        
+        function applySingleSpecFilter(specCode) {
+            filters.singleSpec = specCode;
+            applyFilters();
+        }
+        
+        function copySingleSpec() {
+            const input = document.getElementById('singleSpecSearch');
+            const value = input.value;
+            
+            if (!value) {
+                alert('אין מפרט להעתיק');
+                return;
+            }
+            
+            navigator.clipboard.writeText(value).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓';
+                setTimeout(() => btn.textContent = originalText, 1500);
+            });
+        }
+        
+        
+        function init() {
+            const totalRoutingsCount = Object.keys(COMPLETE_ROUTINGS).length;
+            const totalSigsCount = SIGNATURES.length;
+            
+            // Build allSpecsMap for autocomplete
+            allSpecsMap = new Map();
+            for (const routing of Object.values(COMPLETE_ROUTINGS)) {
+                routing.operations.forEach(op => {
+                    if (op.spec_code !== 'N/A' && op.spec_code !== 'NULL') {
+                        const desc = op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL' && op.spec_desc !== op.spec_code ? op.spec_desc : '';
+                        const label = desc ? `${op.spec_code} (${desc})` : op.spec_code;
+                        allSpecsMap.set(op.spec_code, label);
+                    }
+                });
+            }
+            
+            // Populate single spec dropdown
+            const singleSpecSelect = document.getElementById('singleSpecDropdownSelect');
+            const sortedSpecs = Array.from(allSpecsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+            singleSpecSelect.innerHTML = '<option value="">-- בחר מפרט --</option>' + 
+                sortedSpecs.map(([code, label]) => `<option value="${code}">${label}</option>`).join('');
+            
+            updateDynamicFilters();
+            applyFilters();
+        }
+        
+        function toggleLatest() {
+            const body = document.getElementById('latestBody');
+            const icon = document.getElementById('expandIcon');
+            body.classList.toggle('show');
+            icon.classList.toggle('expanded');
+        }
+        
+        function updateSelectedProcs() {
+            const select = document.getElementById('filterProc');
+            const selected = Array.from(select.selectedOptions).map(o => o.value);
+            
+            const container = document.getElementById('selectedProcs');
+            container.innerHTML = selected.map(proc => {
+                const escaped = proc.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                return `
+                    <div class="selected-tag">
+                        ${proc}
+                        <span class="remove" onclick="removeProc('${escaped}')">✕</span>
+                    </div>
+                `;
+            }).join('');
+            
+            updateDynamicFilters();
+        }
+        
+        function updateSelectedSpecs() {
+            const select = document.getElementById('filterSpec');
+            const selected = Array.from(select.selectedOptions).map(o => o.value);
+            
+            const container = document.getElementById('selectedSpecs');
+            container.innerHTML = selected.map(spec => {
+                const escaped = spec.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+                return `
+                    <div class="selected-tag">
+                        ${spec}
+                        <span class="remove" onclick="removeSpec('${escaped}')">✕</span>
+                    </div>
+                `;
+            }).join('');
+            
+            updateDynamicFilters();
+        }
+        
+        function removeProc(proc) {
+            const select = document.getElementById('filterProc');
+            Array.from(select.options).forEach(opt => {
+                if (opt.value === proc) opt.selected = false;
+            });
+            updateSelectedProcs();
+        }
+        
+        function removeSpec(spec) {
+            const select = document.getElementById('filterSpec');
+            Array.from(select.options).forEach(opt => {
+                if (opt.value === spec) opt.selected = false;
+            });
+            updateSelectedSpecs();
+        }
+        
+        function highlightShortName(shortName) {
+            // Highlight ציפוי with green background and צביעה with orange background
+            // Only highlight the word itself, not what's in parentheses
+            let result = shortName;
+            
+            // Match "ציפוי" but not when it's inside parentheses
+            result = result.replace(/ציפוי(?![^(]*\))/g, '<span style="background-color: #28a745; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ציפוי</span>');
+            
+            // Match "צביעה" but not when it's inside parentheses  
+            result = result.replace(/צביעה(?![^(]*\))/g, '<span style="background-color: #fd7e14; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;">צביעה</span>');
+            
+            return result;
+        }
+        
+        function updateSelectedSigDisplay() {
+            const sigSelect = document.getElementById('filterSig');
+            const display = document.getElementById('selectedSigDisplay');
+            
+            if (sigSelect.value) {
+                // Get the FULL text from title attribute, not the truncated text
+                const selectedOption = sigSelect.options[sigSelect.selectedIndex];
+                const fullText = selectedOption.getAttribute('title') || selectedOption.text;
+                const sigId = parseInt(sigSelect.value);
+                
+                // Get the signature to find routing count and operations
+                const sig = SIGNATURES.find(s => s.id === sigId);
+                const routingCount = sig ? sig.num_routings : 0;
+                
+                // Parse the short_name to extract clean operation flow
+                let cleanFlow = fullText;
+                
+                // Remove coating details in parentheses for cleaner flow
+                const flowParts = fullText.split(' → ').map(part => {
+                    // If it's "ציפוי (something)" just show the operation type with highlighting
+                    if (part.includes('ציפוי')) {
+                        return '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold;">ציפוי</span>';
+                    } else if (part.includes('צביעה')) {
+                        return '<span style="background-color: #fd7e14; color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold;">צביעה</span>';
+                    } else {
+                        return `<span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 4px;">${part}</span>`;
+                    }
+                });
+                
+                const flowHtml = flowParts.join(' <span style="color: #17a2b8; font-weight: bold;">→</span> ');
+                
+                display.innerHTML = `
+                    <div style="padding: 12px; line-height: 2;">
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #667eea;">צירוף #${sigId + 1}</strong>
+                            <span style="background: #17a2b8; color: white; padding: 4px 10px; border-radius: 15px; margin-right: 10px; font-size: 0.9em;">
+                                ${routingCount} ניתובים
+                            </span>
+                        </div>
+                        <div style="font-size: 1.05em; margin-top: 8px;">
+                            ${flowHtml}
+                        </div>
+                    </div>
+                `;
+            } else {
+                display.innerHTML = '<span style="color: #999; font-style: italic;">לא נבחר צירוף - בחר מהרשימה למעלה</span>';
+            }
+        }
+        
+        function updateDynamicFilters() {
+            const tempFilters = {
+                sig: document.getElementById('filterSig').value || null,
+                routing: document.getElementById('filterRouting').value.trim(),
+                op: document.getElementById('filterOp').value || null,
+                opType: document.getElementById('filterOpType').value || null,
+                procs: Array.from(document.getElementById('filterProc').selectedOptions).map(o => o.value),
+                specs: Array.from(document.getElementById('filterSpec').selectedOptions).map(o => o.value)
+            };
+            
+            const sigSel = document.getElementById('filterSig');
+            sigSel.innerHTML = '<option value="">הכל</option>' +
+                SIGNATURES
+                    .filter(s => showSingleRoutings || s.num_routings > 2)  // Show only 3+ routings by default
+                    .map(s => {
+                    // Show FULL name without truncation
+                    return `<option value="${s.id}" title="${s.short_name}">#${s.id + 1} - ${s.short_name} (${s.num_routings})</option>`;
+                }).join('');
+            if (tempFilters.sig) sigSel.value = tempFilters.sig;
+            
+            let availableRoutings = [];
+            for (const [routingId, routing] of Object.entries(COMPLETE_ROUTINGS)) {
+                let match = true;
+                
+                if (tempFilters.sig !== null) {
+                    const sig = SIGNATURES.find(s => s.id == tempFilters.sig);
+                    if (!sig || !sig.routings.some(r => r.id === routingId)) {
+                        match = false;
+                    }
+                }
+                
+                if (match && tempFilters.routing && !routingId.toLowerCase().includes(tempFilters.routing.toLowerCase())) {
+                    match = false;
+                }
+                
+                if (match) {
+                    availableRoutings.push({id: routingId, part: routing.part, date: routing.date});
+                }
+            }
+            
+            // Collect operations with their position numbers
+            const opsMap = new Map(); // operation name -> earliest position
+            availableRoutings.forEach(r => {
+                const routing = COMPLETE_ROUTINGS[r.id];
+                if (routing) {
+                    routing.operations.forEach((op, idx) => {
+                        if (op.name !== 'N/A') {
+                            if (!opsMap.has(op.name)) {
+                                opsMap.set(op.name, idx);
+                            } else {
+                                // Keep the earliest position
+                                opsMap.set(op.name, Math.min(opsMap.get(op.name), idx));
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Sort by position, then alphabetically
+            const sortedOps = Array.from(opsMap.entries())
+                .sort((a, b) => {
+                    if (a[1] !== b[1]) return a[1] - b[1]; // Sort by position
+                    return a[0].localeCompare(b[0], 'he'); // Then alphabetically
+                })
+                .map(entry => entry[0]);
+            
+            const opSel = document.getElementById('filterOp');
+            opSel.innerHTML = '<option value="">הכל</option>' +
+                sortedOps.map(o => `<option value="${o}">${o}</option>`).join('');
+            if (tempFilters.op && opsMap.has(tempFilters.op)) {
+                opSel.value = tempFilters.op;
+            }
+            
+            let availableOpTypes = new Set();
+            availableRoutings.forEach(r => {
+                const routing = COMPLETE_ROUTINGS[r.id];
+                if (routing) {
+                    routing.operations.forEach(op => {
+                        if (op.op_type !== 'N/A') availableOpTypes.add(op.op_type);
+                    });
+                }
+            });
+            
+            const opTypeSel = document.getElementById('filterOpType');
+            opTypeSel.innerHTML = '<option value="">הכל</option>' +
+                [...availableOpTypes].sort().map(t => `<option value="${t}">${t}</option>`).join('');
+            if (tempFilters.opType && availableOpTypes.has(tempFilters.opType)) {
+                opTypeSel.value = tempFilters.opType;
+            }
+            
+            let availableProcs = new Map();
+            availableRoutings.forEach(r => {
+                const routing = COMPLETE_ROUTINGS[r.id];
+                if (routing) {
+                    routing.operations.forEach(op => {
+                        if (!tempFilters.op || op.name === tempFilters.op) {
+                            if ((op.proc_code !== 'N/A' && op.proc_code !== 'NULL') || (op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL')) {
+                                // Use code as key, format as: code (description)
+                                const code = op.proc_code !== 'N/A' && op.proc_code !== 'NULL' ? op.proc_code : op.proc_desc;
+                                const desc = op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL' && op.proc_desc !== op.proc_code ? op.proc_desc : '';
+                                const label = desc ? `${code} (${desc})` : code;
+                                availableProcs.set(code, label);
+                            }
+                        }
+                    });
+                }
+            });
+            
+            const procSel = document.getElementById('filterProc');
+            procSel.innerHTML = [...availableProcs].sort((a,b) => a[0].localeCompare(b[0]))
+                .map(([key, label]) => `<option value="${key}">${label}</option>`).join('');
+            tempFilters.procs.forEach(proc => {
+                if (availableProcs.has(proc)) {
+                    Array.from(procSel.options).forEach(opt => {
+                        if (opt.value === proc) opt.selected = true;
+                    });
+                }
+            });
+            
+            let availableSpecs = new Map();
+            availableRoutings.forEach(r => {
+                const routing = COMPLETE_ROUTINGS[r.id];
+                if (routing) {
+                    routing.operations.forEach(op => {
+                        if (!tempFilters.op || op.name === tempFilters.op) {
+                            if (op.spec_code !== 'N/A' && op.spec_code !== 'NULL') {
+                                // Format as: code (description)
+                                const desc = op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL' && op.spec_desc !== op.spec_code ? op.spec_desc : '';
+                                const label = desc ? `${op.spec_code} (${desc})` : op.spec_code;
+                                availableSpecs.set(op.spec_code, label);
+                            }
+                        }
+                    });
+                }
+            });
+            
+            const specSel = document.getElementById('filterSpec');
+            specSel.innerHTML = [...availableSpecs].sort((a,b) => a[0].localeCompare(b[0]))
+                .map(([code, label]) => `<option value="${code}">${label}</option>`).join('');
+            tempFilters.specs.forEach(spec => {
+                if (availableSpecs.has(spec)) {
+                    Array.from(specSel.options).forEach(opt => {
+                        if (opt.value === spec) opt.selected = true;
+                    });
+                }
+            });
+        }
+        
+        function applyFilters() {
+            filters.sig = document.getElementById('filterSig').value || null;
+            if (filters.sig !== null) filters.sig = parseInt(filters.sig);
+            
+            filters.routing = document.getElementById('filterRouting').value.trim();
+            filters.op = document.getElementById('filterOp').value || null;
+            filters.opType = document.getElementById('filterOpType').value || null;
+            filters.procs = Array.from(document.getElementById('filterProc').selectedOptions).map(o => o.value);
+            filters.specs = Array.from(document.getElementById('filterSpec').selectedOptions).map(o => o.value);
+            
+            let matchingRoutingIds = new Set();
+            
+            for (const [routingId, routing] of Object.entries(COMPLETE_ROUTINGS)) {
+                let match = true;
+                
+                if (filters.sig !== null) {
+                    const sig = SIGNATURES.find(s => s.id === filters.sig);
+                    if (!sig || !sig.routings.some(r => r.id === routingId)) {
+                        match = false;
+                    }
+                }
+                
+                if (match && filters.routing && !routingId.toLowerCase().includes(filters.routing.toLowerCase())) {
+                    match = false;
+                }
+                
+                if (match && filters.op) {
+                    if (!routing.operations.some(o => o.name === filters.op)) {
+                        match = false;
+                    }
+                }
+                
+                if (match && filters.opType) {
+                    if (!routing.operations.some(o => o.op_type === filters.opType)) {
+                        match = false;
+                    }
+                }
+                
+                if (match && filters.procs.length > 0) {
+                    const routingProcs = new Set();
+                    routing.operations.forEach(o => {
+                        if (o.proc_desc !== 'N/A') routingProcs.add(o.proc_desc);
+                        if (o.proc_code !== 'N/A') routingProcs.add(o.proc_code);
+                    });
+                    
+                    const hasAllProcs = filters.procs.every(proc => routingProcs.has(proc));
+                    if (!hasAllProcs) {
+                        match = false;
+                    }
+                }
+                
+                if (match && filters.specs.length > 0) {
+                    const routingSpecs = new Set();
+                    routing.operations.forEach(o => {
+                        if (o.spec_code !== 'N/A') routingSpecs.add(o.spec_code);
+                    });
+                    
+                    const hasAllSpecs = filters.specs.every(spec => routingSpecs.has(spec));
+                    if (!hasAllSpecs) {
+                        match = false;
+                    }
+                }
+                
+                // Single spec filter
+                if (match && filters.singleSpec) {
+                    const hasSpec = routing.operations.some(o => o.spec_code === filters.singleSpec);
+                    if (!hasSpec) {
+                        match = false;
+                    }
+                }
+                
+                if (match) {
+                    matchingRoutingIds.add(routingId);
+                }
+            }
+            
+            let filtered = [];
+            
+            for (let sig of SIGNATURES) {
+                // Skip signatures with 1 or 2 routings if showSingleRoutings is false
+                if (!showSingleRoutings && sig.num_routings <= 2) {
+                    continue;
+                }
+                
+                if (filters.sig !== null && sig.id !== filters.sig) {
+                    continue;
+                }
+                
+                const matchingRoutings = sig.routings.filter(r => matchingRoutingIds.has(r.id));
+                
+                if (matchingRoutings.length === 0) {
+                    continue;
+                }
+                
+                const filteredOperations = sig.operations.map((op, idx) => {
+                    const processes = new Map();
+                    const specs = new Map();
+                    
+                    matchingRoutings.forEach(r => {
+                        const routing = COMPLETE_ROUTINGS[r.id];
+                        if (routing && routing.operations[idx]) {
+                            const rop = routing.operations[idx];
+                            
+                            if (rop.proc_code !== 'N/A' || rop.proc_desc !== 'N/A') {
+                                const pkey = `${rop.proc_code}|||${rop.proc_desc}`;
+                                processes.set(pkey, {code: rop.proc_code, desc: rop.proc_desc});
+                            }
+                            
+                            if (rop.spec_code !== 'N/A' || rop.spec_desc !== 'N/A') {
+                                const skey = `${rop.spec_code}|||${rop.spec_desc}`;
+                                specs.set(skey, {code: rop.spec_code, desc: rop.spec_desc});
+                            }
+                        }
+                    });
+                    
+                    return {
+                        num: op.num,
+                        name: op.name,
+                        op_types: op.op_types,
+                        processes: Array.from(processes.values()),
+                        specs: Array.from(specs.values())
+                    };
+                });
+                
+                filtered.push({
+                    ...sig,
+                    routings: matchingRoutings,
+                    operations: filteredOperations,
+                    num_routings: matchingRoutings.length
+                });
+            }
+            
+            currentFiltered = filtered;
+            updateStats();
+            updateLatest();
+            render();
+        }
+        
+        function clearFilters() {
+            document.getElementById('filterSig').value = '';
+            document.getElementById('filterRouting').value = '';
+            document.getElementById('filterOp').value = '';
+            document.getElementById('filterOpType').value = '';
+            document.getElementById('filterProc').selectedIndex = -1;
+            document.getElementById('filterSpec').selectedIndex = -1;
+            document.getElementById('singleSpecSearch').value = '';
+            document.getElementById('singleSpecDropdownSelect').value = '';
+            document.getElementById('selectedProcs').innerHTML = '';
+            document.getElementById('selectedSpecs').innerHTML = '';
+            document.getElementById('selectedSigDisplay').innerHTML = ''; // Clear signature display box
+            filters = { sig: null, routing: '', op: null, opType: null, procs: [], specs: [], singleSpec: null };
+            updateDynamicFilters();
+            applyFilters();
+        }
+        
+        function toggleSingleRoutings() {
+            showSingleRoutings = !showSingleRoutings;
+            const btn = document.getElementById('toggleSingleBtn');
+            
+            if (showSingleRoutings) {
+                btn.innerHTML = '🙈 הסתר צירופים עם 1-2 ניתובים';
+                btn.style.background = 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)';
+            } else {
+                btn.innerHTML = '👁️ הצג צירופים עם 1-2 ניתובים';
+                btn.style.background = 'linear-gradient(135deg, #4caf50 0%, #ff9800 100%)';
+            }
+            
+            // Update filters dropdown first, then apply
+            updateDynamicFilters();
+            applyFilters();
+        }
+        
+        // Store sequence search results for spec search
+        let lastSequenceResults = [];
+        
+        async function handleTextFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+                
+                if (lines.length < 1) {
+                    alert('הקובץ ריק או לא תקין');
+                    return;
+                }
+                
+                // Line 1: Sequence search (operations)
+                const sequenceKeywords = lines[0] || '';
+                
+                // Line 2: Spec search (optional)
+                const specKeywords = lines[1] || '';
+                
+                console.log('📄 קובץ נטען:');
+                console.log('  שורה 1 (רצף):', sequenceKeywords);
+                console.log('  שורה 2 (מפרטים):', specKeywords);
+                
+                // Fill sequence search field
+                document.getElementById('sequenceSearch').value = sequenceKeywords;
+                
+                // Perform sequence search
+                if (sequenceKeywords) {
+                    searchSequence();
+                    
+                    // If there's a second line, perform spec search after a delay
+                    // (giving time for searchSequence to complete)
+                    if (specKeywords) {
+                        setTimeout(() => {
+                            // Check if we have results before searching specs
+                            if (lastSequenceResults.length > 0) {
+                                document.getElementById('specSearchInput').value = specKeywords;
+                                searchSpecsInResults();
+                            } else {
+                                console.log('⚠️ אין תוצאות חיפוש רצף, מדלג על חיפוש מפרטים');
+                            }
+                        }, 1000); // Increased delay to 1 second
+                    }
+                }
+                
+                // Clear file input
+                event.target.value = '';
+                
+            } catch (error) {
+                alert('שגיאה בקריאת הקובץ: ' + error.message);
+                console.error(error);
+            }
+        }
+        
+        function validateKeywords() {
+            const input = document.getElementById('sequenceSearch').value.trim();
+            const messageDiv = document.getElementById('keywordValidationMessage');
+            const inputField = document.getElementById('sequenceSearch');
+            
+            if (!input) {
+                messageDiv.style.display = 'none';
+                inputField.style.borderColor = '';
+                return;
+            }
+            
+            const keywords = input.split('+').map(k => k.trim().toLowerCase()).filter(k => k);
+            
+            if (keywords.length === 0) {
+                messageDiv.style.display = 'none';
+                inputField.style.borderColor = '';
+                return;
+            }
+            
+            // Build set of all available keywords
+            const allKeywordsInDict = new Set();
+            for (const [opName, opKeywords] of Object.entries(OPERATION_KEYWORDS)) {
+                opKeywords.forEach(kw => allKeywordsInDict.add(kw.toLowerCase()));
+            }
+            
+            // Check which keywords are missing
+            const missingKeywords = [];
+            keywords.forEach(keyword => {
+                if (!allKeywordsInDict.has(keyword)) {
+                    missingKeywords.push(keyword);
+                }
+            });
+            
+            if (missingKeywords.length > 0) {
+                inputField.style.borderColor = '#dc3545';
+                inputField.style.borderWidth = '2px';
+                messageDiv.innerHTML = `⚠️ מילות המפתח הבאות לא נמצאות במאגר: <strong>${missingKeywords.join(', ')}</strong><br>💡 הוסף אותן לקובץ MAP וטען מחדש`;
+                messageDiv.style.color = '#dc3545';
+                messageDiv.style.display = 'block';
+            } else {
+                inputField.style.borderColor = '#28a745';
+                inputField.style.borderWidth = '2px';
+                messageDiv.innerHTML = `✅ כל מילות המפתח נמצאות במאגר`;
+                messageDiv.style.color = '#28a745';
+                messageDiv.style.display = 'block';
+            }
+        }
+        
+        // Sequence search functions
+        function searchSequence() {
+            const input = document.getElementById('sequenceSearch').value.trim();
+            if (!input) {
+                alert('אנא הזן טקסט חיפוש');
+                return;
+            }
+            
+            // Split by + and clean keywords
+            const keywords = input.split('+').map(k => k.trim().toLowerCase()).filter(k => k);
+            
+            console.log('🔍 חיפוש:', keywords);
+            console.log('📚 OPERATION_KEYWORDS:', Object.keys(OPERATION_KEYWORDS).length, 'operations');
+            
+            if (keywords.length === 0) {
+                alert('אנא הזן לפחות מילת חיפוש אחת');
+                return;
+            }
+            
+            // Validate that all keywords exist in the dictionary
+            const allKeywordsInDict = new Set();
+            for (const [opName, opKeywords] of Object.entries(OPERATION_KEYWORDS)) {
+                opKeywords.forEach(kw => allKeywordsInDict.add(kw.toLowerCase()));
+            }
+            
+            const missingKeywords = [];
+            keywords.forEach(keyword => {
+                if (!allKeywordsInDict.has(keyword)) {
+                    missingKeywords.push(keyword);
+                }
+            });
+            
+            if (missingKeywords.length > 0) {
+                const message = `⚠️ מילות המפתח הבאות לא נמצאות במאגר:\n\n` +
+                    missingKeywords.map(k => `❌ "${k}"`).join('\n') +
+                    `\n\n💡 אנא:\n` +
+                    `1. בדוק איות\n` +
+                    `2. הוסף את המילים לקובץ MAP\n` +
+                    `3. טען מחדש את קובץ מילות המפתח דרך הכפתור "🔑 טען MAP חדש"`;
+                
+                alert(message);
+                return;
+            }
+            
+            const matchingRoutings = [];
+            let totalChecked = 0;
+            
+            // Search through all routings
+            for (const [routingId, routing] of Object.entries(COMPLETE_ROUTINGS)) {
+                totalChecked++;
+                if (matchesSequence(routing, keywords)) {
+                    matchingRoutings.push({
+                        id: routingId,
+                        routing: routing
+                    });
+                }
+            }
+            
+            console.log(`✅ בדקתי ${totalChecked} ניתובים, מצאתי ${matchingRoutings.length}`);
+            
+            // Save results for spec search
+            lastSequenceResults = matchingRoutings;
+            
+            // Display results
+            displaySequenceResults(matchingRoutings, keywords);
+            
+            // Show spec search section if there are results
+            if (matchingRoutings.length > 0) {
+                document.getElementById('specSearchSection').style.display = 'block';
+                document.getElementById('currentSearchCount').textContent = matchingRoutings.length;
+            } else {
+                document.getElementById('specSearchSection').style.display = 'none';
+            }
+        }
+        
+        function matchesSequence(routing, keywords) {
+            // Find all keywords in separate operations, in order
+            let keywordIndex = 0;
+            
+            for (let opIndex = 0; opIndex < routing.operations.length && keywordIndex < keywords.length; opIndex++) {
+                const op = routing.operations[opIndex];
+                const keyword = keywords[keywordIndex].trim().toLowerCase();
+                
+                // Try to find matching keywords for this operation
+                // Check if operation name matches any key in OPERATION_KEYWORDS (flexible matching)
+                let opKeywords = null;
+                
+                // First: try exact match
+                if (OPERATION_KEYWORDS[op.name]) {
+                    opKeywords = OPERATION_KEYWORDS[op.name];
+                } else {
+                    // Second: try flexible match - check if any mapped operation is contained in op.name
+                    for (const [mappedOpName, mappedKeywords] of Object.entries(OPERATION_KEYWORDS)) {
+                        // Normalize both strings for comparison
+                        const normalizedOpName = op.name.replace(/\s+/g, ' ').trim();
+                        const normalizedMappedName = mappedOpName.replace(/\s+/g, ' ').trim();
+                        
+                        if (normalizedOpName === normalizedMappedName || 
+                            normalizedOpName.includes(normalizedMappedName) ||
+                            normalizedMappedName.includes(normalizedOpName)) {
+                            opKeywords = mappedKeywords;
+                            break;
+                        }
+                    }
+                }
+                
+                // Skip operations not in the mapping
+                if (!opKeywords || opKeywords.length === 0) {
+                    continue;
+                }
+                
+                // Check if the search keyword matches any of the operation's keywords
+                const matched = opKeywords.some(opKw => opKw.toLowerCase() === keyword);
+                
+                if (matched) {
+                    keywordIndex++;
+                }
+            }
+            
+            // Check if we found all keywords
+            return keywordIndex === keywords.length;
+        }
+        
+        function displaySequenceResults(results, keywords) {
+            const resultsDiv = document.getElementById('sequenceResults');
+            const countSpan = document.getElementById('sequenceCount');
+            const listDiv = document.getElementById('sequenceList');
+            
+            if (results.length === 0) {
+                listDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">❌ לא נמצאו ניתובים מתאימים</div>';
+                resultsDiv.style.display = 'block';
+                countSpan.textContent = 0;
+                return;
+            }
+            
+            // Group by signature and collect data
+            const signatureGroups = {};
+            
+            results.forEach(({id, routing}) => {
+                const sigId = routing.signature_id;
+                
+                if (!signatureGroups[sigId]) {
+                    signatureGroups[sigId] = {
+                        signature: routing.signature,
+                        signature_id: sigId,
+                        routings: []
+                    };
+                }
+                
+                signatureGroups[sigId].routings.push({id, routing});
+            });
+            
+            // Sort routings within each signature by approval_date (newest first)
+            Object.values(signatureGroups).forEach(group => {
+                group.routings.sort((a, b) => {
+                    const dateA = new Date(a.routing.approval_date || '1970-01-01');
+                    const dateB = new Date(b.routing.approval_date || '1970-01-01');
+                    return dateB - dateA; // newest first
+                });
+            });
+            
+            // Count totals
+            const totalSignatures = Object.keys(signatureGroups).length;
+            const totalRoutings = results.length;
+            
+            // Update counter display
+            countSpan.textContent = `${totalRoutings} ניתובים ב-${totalSignatures} צירופים`;
+            
+            // Build HTML
+            const html = Object.values(signatureGroups).map(group => {
+                const routingsHtml = group.routings.map(({id, routing}) => {
+                    // Find matched operations
+                    const matchedOps = [];
+                    let keywordIndex = 0;
+                    
+                    for (let i = 0; i < routing.operations.length && keywordIndex < keywords.length; i++) {
+                        const op = routing.operations[i];
+                        const keyword = keywords[keywordIndex].trim().toLowerCase();
+                        
+                        let opKeywords = null;
+                        if (OPERATION_KEYWORDS[op.name]) {
+                            opKeywords = OPERATION_KEYWORDS[op.name];
+                        } else {
+                            for (const [mappedOpName, mappedKeywords] of Object.entries(OPERATION_KEYWORDS)) {
+                                const normalizedOpName = op.name.replace(/\s+/g, ' ').trim();
+                                const normalizedMappedName = mappedOpName.replace(/\s+/g, ' ').trim();
+                                
+                                if (normalizedOpName === normalizedMappedName || 
+                                    normalizedOpName.includes(normalizedMappedName) ||
+                                    normalizedMappedName.includes(normalizedOpName)) {
+                                    opKeywords = mappedKeywords;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (!opKeywords || opKeywords.length === 0) {
+                            continue;
+                        }
+                        
+                        const matched = opKeywords.some(opKw => opKw.toLowerCase() === keyword);
+                        
+                        if (matched) {
+                            matchedOps.push({
+                                index: i,
+                                keyword: keyword,
+                                op: op
+                            });
+                            keywordIndex++;
+                        }
+                    }
+                    
+                    // Collect all unique specs from all operations
+                    const allSpecs = new Set();
+                    routing.operations.forEach(op => {
+                        if (op.spec_code && op.spec_code !== 'N/A' && op.spec_code !== 'NULL') {
+                            allSpecs.add(op.spec_code);
+                        }
+                    });
+                    
+                    const specsHtml = allSpecs.size > 0 ? `
+                        <div style="margin-top: 8px; padding: 8px; background: #e8f5e9; border-radius: 4px; border-right: 3px solid #4caf50;">
+                            <div style="font-size: 0.85em; color: #2e7d32; font-weight: bold; margin-bottom: 4px;">📋 מפרטים:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                ${Array.from(allSpecs).map(spec => `
+                                    <span style="background: #4caf50; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.85em; white-space: nowrap;">
+                                        ${spec}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : '';
+                    
+                    return `
+                        <div style="margin: 8px 0; padding: 12px; background: white; border-right: 3px solid #4caf50; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <strong style="color: #4caf50; font-size: 1.1em; white-space: nowrap;">${id}</strong>
+                                    <span style="color: #666; font-size: 0.9em; white-space: nowrap;">
+                                        📅 ${routing.approval_date || 'ללא תאריך'}
+                                    </span>
+                                </div>
+                                <button onclick='viewRoutingFromSearch(\`${id}\`)' 
+                                        style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); 
+                                               color: white; 
+                                               border: none; 
+                                               padding: 8px 16px; 
+                                               border-radius: 20px; 
+                                               cursor: pointer; 
+                                               font-weight: bold;
+                                               font-size: 0.9em;
+                                               box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                               transition: all 0.3s;">
+                                    👁️ הצג ניתוב
+                                </button>
+                            </div>
+                            <div style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                                ${matchedOps.map(m => `
+                                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
+                                        <span style="background: #ffc107; color: #000; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; font-weight: bold; white-space: nowrap;">
+                                            🔑 ${m.keyword}
+                                        </span>
+                                        <span style="font-size: 0.95em; color: #333;">${m.op.name}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${specsHtml}
+                        </div>
+                    `;
+                }).join('');
+                
+                return `
+                    <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div style="font-weight: bold; color: #1b5e20; font-size: 1.2em;">
+                                📊 צירוף #${group.signature_id}
+                            </div>
+                            <div style="background: #4caf50; color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
+                                ${group.routings.length} ניתובים
+                            </div>
+                        </div>
+                        <div style="color: #2e7d32; font-size: 0.95em; margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 5px; border-right: 4px solid #4caf50;">
+                            ${group.signature}
+                        </div>
+                        ${routingsHtml}
+                    </div>
+                `;
+            }).join('');
+            
+            listDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function clearSequenceSearch() {
+            document.getElementById('sequenceSearch').value = '';
+            document.getElementById('sequenceResults').style.display = 'none';
+            document.getElementById('specSearchSection').style.display = 'none';
+            lastSequenceResults = [];
+        }
+        
+        function searchSpecsInResults() {
+            const input = document.getElementById('specSearchInput').value.trim();
+            if (!input) {
+                alert('אנא הזן שמות מפרטים');
+                return;
+            }
+            
+            if (lastSequenceResults.length === 0) {
+                alert('אנא בצע חיפוש רצף פעולות תחילה');
+                return;
+            }
+            
+            // Split by + and clean spec names
+            const specNames = input.split('+').map(s => s.trim().toLowerCase()).filter(s => s);
+            
+            if (specNames.length === 0) {
+                alert('אנא הזן לפחות שם מפרט אחד');
+                return;
+            }
+            
+            const matchingRoutings = [];
+            
+            // Search in last sequence results
+            for (const result of lastSequenceResults) {
+                const routing = result.routing;
+                let foundAll = true;
+                
+                // Check if all spec names exist in routing operations
+                for (const specName of specNames) {
+                    let foundThisSpec = false;
+                    
+                    for (const op of routing.operations) {
+                        // Search in spec_code only (not spec_desc)
+                        if (op.spec_code && 
+                            op.spec_code !== 'N/A' && 
+                            op.spec_code.toLowerCase().includes(specName)) {
+                            foundThisSpec = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!foundThisSpec) {
+                        foundAll = false;
+                        break;
+                    }
+                }
+                
+                if (foundAll) {
+                    matchingRoutings.push(result);
+                }
+            }
+            
+            console.log(`🎯 מתוך ${lastSequenceResults.length} ניתובים, מצאתי ${matchingRoutings.length} עם כל המפרטים`);
+            
+            // Display results
+            displaySpecResults(matchingRoutings, specNames);
+        }
+        
+        function displaySpecResults(results, specNames) {
+            const resultsDiv = document.getElementById('specResults');
+            const countSpan = document.getElementById('specCount');
+            const listDiv = document.getElementById('specList');
+            
+            if (results.length === 0) {
+                listDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">❌ לא נמצאו ניתובים עם כל המפרטים</div>';
+                resultsDiv.style.display = 'block';
+                countSpan.textContent = 0;
+                return;
+            }
+            
+            // Group by signature
+            const signatureGroups = {};
+            
+            results.forEach(({id, routing}) => {
+                const sigId = routing.signature_id;
+                
+                if (!signatureGroups[sigId]) {
+                    signatureGroups[sigId] = {
+                        signature: routing.signature,
+                        signature_id: sigId,
+                        routings: []
+                    };
+                }
+                
+                signatureGroups[sigId].routings.push({id, routing});
+            });
+            
+            // Sort routings within each signature by approval_date
+            Object.values(signatureGroups).forEach(group => {
+                group.routings.sort((a, b) => {
+                    const dateA = new Date(a.routing.approval_date || '1970-01-01');
+                    const dateB = new Date(b.routing.approval_date || '1970-01-01');
+                    return dateB - dateA;
+                });
+            });
+            
+            const totalSignatures = Object.keys(signatureGroups).length;
+            const totalRoutings = results.length;
+            countSpan.textContent = `${totalRoutings} ניתובים ב-${totalSignatures} צירופים`;
+            
+            // Build HTML
+            const html = Object.values(signatureGroups).map(group => {
+                const routingsHtml = group.routings.map(({id, routing}) => {
+                    // Find matched specs
+                    const matchedSpecs = [];
+                    
+                    for (const specName of specNames) {
+                        for (const op of routing.operations) {
+                            if (op.spec_code && 
+                                op.spec_code !== 'N/A' && 
+                                op.spec_code.toLowerCase().includes(specName)) {
+                                matchedSpecs.push({
+                                    specName: specName,
+                                    spec: op.spec_code,
+                                    operation: op.name
+                                });
+                                break;
+                            }
+                        }
+                    }
+                    
+                    return `
+                        <div style="margin: 8px 0; padding: 12px; background: white; border-right: 3px solid #2196f3; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <strong style="color: #2196f3; font-size: 1.1em; white-space: nowrap;">${id}</strong>
+                                    <span style="color: #666; font-size: 0.9em; white-space: nowrap;">
+                                        📅 ${routing.approval_date || 'ללא תאריך'}
+                                    </span>
+                                </div>
+                                <button onclick="viewRoutingFromSearch('${id}')" 
+                                        style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); 
+                                               color: white; 
+                                               border: none; 
+                                               padding: 8px 16px; 
+                                               border-radius: 20px; 
+                                               cursor: pointer; 
+                                               font-weight: bold;
+                                               font-size: 0.9em;
+                                               box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                    👁️ הצג ניתוב
+                                </button>
+                            </div>
+                            <div style="margin-top: 8px; padding: 8px; background: #e3f2fd; border-radius: 4px;">
+                                ${matchedSpecs.map(m => `
+                                    <div style="margin: 4px 0; display: flex; align-items: center; gap: 8px;">
+                                        <span style="background: #2196f3; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; font-weight: bold;">
+                                            📋 ${m.specName}
+                                        </span>
+                                        <span style="font-size: 0.95em; color: #333;">${m.spec} - ${m.operation}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                return `
+                    <div style="margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border: 2px solid #2196f3; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div style="font-weight: bold; color: #0d47a1; font-size: 1.2em;">
+                                📊 צירוף #${group.signature_id}
+                            </div>
+                            <div style="background: #2196f3; color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">
+                                ${group.routings.length} ניתובים
+                            </div>
+                        </div>
+                        <div style="color: #1565c0; font-size: 0.95em; margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.7); border-radius: 5px; border-right: 4px solid #2196f3;">
+                            ${group.signature}
+                        </div>
+                        ${routingsHtml}
+                    </div>
+                `;
+            }).join('');
+            
+            listDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function clearSpecSearch() {
+            document.getElementById('specSearchInput').value = '';
+            document.getElementById('specResults').style.display = 'none';
+        }
+        
+        function viewRoutingFromSearch(routingId) {
+            // Fill the routing search field with the selected routing ID
+            document.getElementById('filterRouting').value = routingId;
+            
+            // Trigger the filter
+            applyFilters();
+            
+            // Scroll to the routing display section after a short delay
+            setTimeout(() => {
+                const element = document.getElementById('latestRouting');
+                if (element) {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            }, 300);
+        }
+        
+        function toggleProcessFilter() {
+            const content = document.getElementById('processFilterContent');
+            const icon = document.getElementById('processToggleIcon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▼';
+            }
+        }
+        
+        function toggleSpecFilter() {
+            const content = document.getElementById('specFilterContent');
+            const icon = document.getElementById('specToggleIcon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.textContent = '▲';
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▼';
+            }
+        }
+        
+        function updateStats() {
+            // Update filtered/displayed counts
+            const totalFilteredRoutings = currentFiltered.reduce((sum, s) => sum + s.num_routings, 0);
+            document.getElementById('totalRoutings').textContent = totalFilteredRoutings;
+            document.getElementById('totalSigs').textContent = currentFiltered.length;
+        }
+        
+        function updateLatest() {
+            const all = [];
+            currentFiltered.forEach(s => s.routings.forEach(r => { if(r.date) all.push(r); }));
+            
+            const div = document.getElementById('latestInfo');
+            if (all.length === 0) {
+                div.classList.remove('show');
+                return;
+            }
+            
+            all.sort((a,b) => {
+                if (!a.date || !b.date) return 0;
+                return new Date(b.date) - new Date(a.date);
+            });
+            
+            // Store sorted routings for navigation
+            allSortedRoutings = all;
+            currentRoutingIndex = 0;  // Start with the latest
+            
+            displayRoutingAtIndex(currentRoutingIndex);
+            div.classList.add('show');
+        }
+        
+        function displayRoutingAtIndex(index) {
+            if (index < 0 || index >= allSortedRoutings.length) return;
+            
+            latestRouting = allSortedRoutings[index];
+            const routing = COMPLETE_ROUTINGS[latestRouting.id];
+            
+            // Format date properly
+            let dateStr = 'אין תאריך';
+            if (latestRouting.date) {
+                const [year, month, day] = latestRouting.date.split('-');
+                const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                dateStr = dateObj.toLocaleDateString('he-IL', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+            
+            // Build compact operation summaries - only for operations with process OR spec
+            const opSummaries = routing.operations
+                .filter(op => (op.proc_code !== 'N/A' || op.proc_desc !== 'N/A') || (op.spec_code !== 'N/A' || op.spec_desc !== 'N/A'))
+                .map(op => {
+                    const parts = [];
+                    
+                    // Operation name
+                    parts.push(`<strong>${op.name}</strong>`);
+                    
+                    // Add detailed description if exists
+                    if (op.detailed_desc && op.detailed_desc !== 'N/A' && op.detailed_desc !== 'NULL') {
+                        parts.push(`<div style="color: #666; font-size: 0.85em; margin-top: 2px; font-style: italic;">${op.detailed_desc}</div>`);
+                    }
+                    
+                    if (op.proc_code !== 'N/A' && op.proc_code !== 'NULL' || op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL') {
+                        let procText = '';
+                        if (op.proc_code !== 'N/A' && op.proc_code !== 'NULL' && op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL' && op.proc_desc !== op.proc_code) {
+                            procText = `${op.proc_code} - ${op.proc_desc}`;
+                        } else if (op.proc_code !== 'N/A' && op.proc_code !== 'NULL') {
+                            procText = op.proc_code;
+                        } else if (op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL') {
+                            procText = op.proc_desc;
+                        }
+                        if (procText) {
+                            parts.push(`<span style="background: #17a2b8; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.85em;">${procText}</span>`);
+                        }
+                    }
+                    
+                    if (op.spec_code !== 'N/A' && op.spec_code !== 'NULL' || op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL') {
+                        let specText = '';
+                        if (op.spec_code !== 'N/A' && op.spec_code !== 'NULL' && op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL' && op.spec_desc !== op.spec_code) {
+                            specText = `${op.spec_code} - ${op.spec_desc}`;
+                        } else if (op.spec_code !== 'N/A' && op.spec_code !== 'NULL') {
+                            specText = op.spec_code;
+                        } else if (op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL') {
+                            specText = op.spec_desc;
+                        }
+                        if (specText) {
+                            parts.push(`<span style="background: #28a745; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.85em;">${specText}</span>`);
+                        }
+                    }
+                    
+                    return `<div style="display: flex; flex-direction: column; gap: 4px; margin: 8px 0;">${parts.join('')}</div>`;
+                }).join('');
+            
+            const opsWithDataHtml = opSummaries ? `
+                <div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 6px; border-right: 4px solid #4caf50;">
+                    <strong style="color: #4caf50; font-size: 1.1em;">⚙️ פעולות עם תהליכים/מפרטים:</strong>
+                    <div style="margin-top: 10px;">${opSummaries}</div>
+                </div>
+            ` : '';
+            
+            document.getElementById('latestSummary').innerHTML = `
+                <div class="latest-detail">
+                    🔗 מספר ניתוב: <span>${latestRouting.id}</span>
+                </div>
+                <div class="latest-detail">
+                    📦 ${routing.part_name && routing.part_name !== '' ? 
+                        `שם פריט: <span>${routing.part_name}</span><br><span style="font-size: 0.85em; color: #666;">מספר: ${latestRouting.part}</span>` : 
+                        `מספר פריט: <span>${latestRouting.part}</span>`}
+                </div>
+                <div class="latest-detail">
+                    🗓️ תאריך אישור: <span>${dateStr}</span>
+                </div>
+                <div class="latest-detail">
+                    🔢 מספר פעולות: <span>${routing.operations.length}</span>
+                </div>
+                <div class="latest-detail">
+                    📝 שם מקוצר: <span>${routing.short_name}</span>
+                </div>
+                ${opsWithDataHtml}
+            `;
+            
+            const opsHtml = routing.operations.map((op, i) => `
+                <div class="latest-op-item">
+                    <div class="latest-op-header">
+                        <div class="latest-op-num">${i+1}</div>
+                        <div class="latest-op-name">${op.name}</div>
+                    </div>
+                    
+                    ${op.op_type !== 'N/A' ? `
+                        <div class="latest-detail-box" style="border-right-color: #28a745;">
+                            <span class="detail-label">🏷️ סוג פעולה:</span>
+                            <span class="detail-value">${op.op_type === 'ציפוי' ? `ציפוי (${op.name})` : op.op_type}</span>
+                        </div>
+                    ` : ''}
+                    
+                    ${op.detailed_desc !== 'N/A' ? `
+                        <div class="latest-detail-box" style="background: #fff3cd; border-right-color: #ffc107;">
+                            <span class="detail-label">📄 תיאור מפורט:</span>
+                            <div class="info-text">${op.detailed_desc}</div>
+                        </div>
+                    ` : ''}
+                    
+                    ${((op.proc_code !== 'N/A' && op.proc_code !== 'NULL') || (op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL')) || ((op.spec_code !== 'N/A' && op.spec_code !== 'NULL') || (op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL')) ? `
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                            ${(op.proc_code !== 'N/A' && op.proc_code !== 'NULL') || (op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL') ? `
+                                <div style="flex: 1; min-width: 200px;">
+                                    <div style="background: #17a2b8; color: white; padding: 8px 12px; border-radius: 6px;">
+                                        <strong>🎯 תהליך:</strong><br>
+                                        ${op.proc_code !== 'N/A' && op.proc_code !== 'NULL' ? `<span style="font-size: 0.9em;">${op.proc_code}</span>` : ''}
+                                        ${op.proc_desc !== 'N/A' && op.proc_desc !== 'NULL' && op.proc_desc !== op.proc_code ? `<br><span style="font-size: 0.85em; opacity: 0.9;">${op.proc_desc}</span>` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            ${(op.spec_code !== 'N/A' && op.spec_code !== 'NULL') || (op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL') ? `
+                                <div style="flex: 1; min-width: 200px;">
+                                    <div style="background: #28a745; color: white; padding: 8px 12px; border-radius: 6px;">
+                                        <strong>📋 מפרט:</strong><br>
+                                        ${op.spec_code !== 'N/A' && op.spec_code !== 'NULL' ? `<span style="font-size: 0.9em;">${op.spec_code}</span>` : ''}
+                                        ${op.spec_desc !== 'N/A' && op.spec_desc !== 'NULL' && op.spec_desc !== op.spec_code ? `<br><span style="font-size: 0.85em; opacity: 0.9;">${op.spec_desc}</span>` : ''}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            document.getElementById('latestBody').innerHTML = `
+                <h3 style="color:#17a2b8; margin-bottom:20px; font-size:1.3em;">📋 פעולות הניתוב (${routing.operations.length}):</h3>
+                <div class="latest-operations">${opsHtml}</div>
+            `;
+            
+            // Update navigation buttons and position
+            updateNavigationButtons();
+        }
+        
+        function updateNavigationButtons() {
+            const total = allSortedRoutings.length;
+            const current = currentRoutingIndex + 1;
+            
+            document.getElementById('routingPosition').textContent = `${current} / ${total}`;
+            document.getElementById('prevRoutingBtn').disabled = currentRoutingIndex === 0;
+            document.getElementById('nextRoutingBtn').disabled = currentRoutingIndex === total - 1;
+            
+            // Update button styles based on disabled state
+            const prevBtn = document.getElementById('prevRoutingBtn');
+            const nextBtn = document.getElementById('nextRoutingBtn');
+            
+            if (currentRoutingIndex === 0) {
+                prevBtn.style.opacity = '0.5';
+                prevBtn.style.cursor = 'not-allowed';
+            } else {
+                prevBtn.style.opacity = '1';
+                prevBtn.style.cursor = 'pointer';
+            }
+            
+            if (currentRoutingIndex === total - 1) {
+                nextBtn.style.opacity = '0.5';
+                nextBtn.style.cursor = 'not-allowed';
+            } else {
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+            }
+        }
+        
+        function navigateRouting(direction) {
+            const newIndex = currentRoutingIndex + direction;
+            if (newIndex >= 0 && newIndex < allSortedRoutings.length) {
+                currentRoutingIndex = newIndex;
+                displayRoutingAtIndex(currentRoutingIndex);
+            }
+        }
+        
+        function render() {
+            if (currentFiltered.length === 0) {
+                document.getElementById('results').innerHTML = '<div class="no-results">❌ אין תוצאות מתאימות לסינון</div>';
+                return;
+            }
+            
+            const html = currentFiltered.map(sig => `
+                <div class="sig-card">
+                    <div class="sig-header" onclick="toggle(${sig.id})">
+                        <div class="sig-title">
+                            <div>Signature #${sig.id + 1}</div>
+                            <div class="sig-short-name">📝 ${highlightShortName(sig.short_name)}</div>
+                        </div>
+                        <div class="sig-badges">
+                            <div class="badge">${sig.num_ops} פעולות</div>
+                            <div class="badge">${sig.num_routings} ניתובים</div>
+                        </div>
+                    </div>
+                    <div class="sig-body" id="body-${sig.id}">
+                        <h3 class="ops-title">📋 פעולות (מוצגות רק עבור הניתובים המסוננים):</h3>
+                        ${sig.operations.map((op, i) => `
+                            <div class="op-item">
+                                <div class="op-header">
+                                    <div class="op-num">${i+1}</div>
+                                    <div class="op-name-section">
+                                        <div class="op-name">${op.name}</div>
+                                        ${op.op_types.length > 0 ? op.op_types.map(t => {
+                                            if (t === 'ציפוי') {
+                                                return `<span class="op-type-badge">🏷️ ${t} (${op.name})</span>`;
+                                            }
+                                            return `<span class="op-type-badge">🏷️ ${t}</span>`;
+                                        }).join('') : ''}
+                                    </div>
+                                </div>
+                                
+                                ${op.processes.length > 0 ? `
+                                    <div class="variations-section">
+                                        <div class="variation-title">🎯 תהליכים בניתובים אלו (${op.processes.length}):</div>
+                                        ${op.processes.map(p => `
+                                            <div class="variation-item">
+                                                <div class="variation-code">${p.code}</div>
+                                                ${p.desc !== 'N/A' && p.desc !== p.code ? `<div class="variation-desc">${p.desc}</div>` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<div style="color:#999; padding:10px;">אין תהליכים</div>'}
+                                
+                                ${op.specs.length > 0 ? `
+                                    <div class="variations-section">
+                                        <div class="variation-title">📋 מפרטים בניתובים אלו (${op.specs.length}):</div>
+                                        ${op.specs.map(sp => `
+                                            <div class="variation-item">
+                                                <div class="variation-code">${sp.code}</div>
+                                                ${sp.desc !== 'N/A' && sp.desc !== sp.code ? `<div class="variation-desc">${sp.desc}</div>` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<div style="color:#999; padding:10px;">אין מפרטים</div>'}
+                            </div>
+                        `).join('')}
+                        <div class="routings-section">
+                            <h3 class="ops-title">🔗 ניתובים מוצגים (${sig.num_routings}):</h3>
+                            <div class="routings-grid">
+                                ${sig.routings.map(r => {
+                                    let dateStr = 'אין תאריך';
+                                    if (r.date) {
+                                        const [year, month, day] = r.date.split('-');
+                                        const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                                        dateStr = dateObj.toLocaleDateString('he-IL');
+                                    }
+                                    return `
+                                        <div class="routing-card">
+                                            <div class="routing-id">${r.id}</div>
+                                            <div style="color:#666">
+                                                פריט: ${r.part}<br>
+                                                תאריך: ${dateStr}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function toggle(id) {
+            document.getElementById('body-' + id).classList.toggle('show');
+        }
+        
+        init();
+    </script>
+</html>
